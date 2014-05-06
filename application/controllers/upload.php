@@ -23,7 +23,7 @@ class upload extends CI_Controller
         if($_SERVER['REQUEST_METHOD'] == 'POST'){
             //$this->image 由../autoload.php 加载 library/image.php
             $form_file_name = 'imageData';
-            $file_name = time() . '.jpg'; //生成新的图片名
+            $file_name = time(); //生成新的图片名
             $base_path = $this->image->computeImageLocationPath();
             $save_path = $this->upload_path . $base_path;
 
