@@ -30,7 +30,9 @@ class upload extends CI_Controller
             $file = $this->image->upload_image($form_file_name, $file_name, $save_path); //(表单文件的name, 生成的文件名, 存放基本路径)
             $img_src = $save_path . $file;
             if(!$this->input->post('thumb') === false){
-                $img_thumb = $this->image->createThumbLocation($img_src, 120, null, $save_path);
+                $size = $this->input->post('size');
+                $size = $size ? $size : 120;
+                $img_thumb = $this->image->createThumbLocation($img_src, $size, null, $save_path);
             }
             echo $this->upload_src . $base_path . $file;
             exit;
