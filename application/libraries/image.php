@@ -33,13 +33,14 @@ class Image{
          * @return void
          */
         self::_createFolder($upload_path);
+        $size = $_FILES[$imagename]['size'];
         $upload_name = $_FILES[$imagename]['name'];
         $ext = pathinfo($upload_name, PATHINFO_EXTENSION);
         if(empty($ext)) exit('File Extension Error.');
         $filename = $filename . "." . $ext;
         $config['upload_path'] = $upload_path;		//图片目录
         $config['allowed_types'] = 'gif|jpg|png';	//允许上传图片类型
-        $config['max_size'] = '1024';				//大最图片尺寸
+        $config['max_size'] = '10240';				//大最图片尺寸
         $config['file_name'] = $filename;			//生成图片名称
         $config['overwrite'] = true;				//强制覆盖已有图片
         $this->obj->load->library('upload', $config);	//加载upload类
@@ -49,9 +50,23 @@ class Image{
             exit;
         }else{
             $data = $this->obj->upload->data();
-            return $data['file_name'];				//成功
+            $file_name = self::compress($size, $upload_path,  $data['file_name']);
+            echo $file_name;exit;
+            return $file_name;              //成功
         }
     }	//}}}
+    private function compress($size, $upload_path, $filename){  //如果图片大于规定的比例,则压缩尺寸
+        $proportion = 1000000;  //比例
+        $source_image = $upload_path . $filename;
+        if($size > $proportion){
+            list($real_width, $real_height) = getimagesize($source_image);
+            $width = floor(1000000/$size*$real_height);
+            $img_src = self::createThumbLocation($source_image, $width, $filename, $upload_path);
+            return str_replace($upload_path, '', $img_src);
+        }else{
+            return $filename;
+        }
+    }
     public function crop_image($source_image, $x_axis, $y_axis, $width, $height, $view_width, $new_image = null){		//{{{
         /**
          *  $source_image 要裁切图片的物理地址
