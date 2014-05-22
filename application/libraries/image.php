@@ -51,7 +51,6 @@ class Image{
         }else{
             $data = $this->obj->upload->data();
             $file_name = self::compress($size, $upload_path,  $data['file_name']);
-            echo $file_name;exit;
             return $file_name;              //成功
         }
     }	//}}}
@@ -62,7 +61,7 @@ class Image{
             list($real_width, $real_height) = getimagesize($source_image);
             $width = floor(1000000/$size*$real_height);
             $img_src = self::createThumbLocation($source_image, $width, $filename, $upload_path);
-            return str_replace($upload_path, '', $img_src);
+            return end(explode("/", $imgs));
         }else{
             return $filename;
         }
