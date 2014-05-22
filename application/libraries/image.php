@@ -61,7 +61,7 @@ class Image{
             list($real_width, $real_height) = getimagesize($source_image);
             $width = floor(1000000/$size*$real_height);
             $img_src = self::createThumbLocation($source_image, $width, $filename, $upload_path);
-            return end(explode("/", $imgs));
+            return end(explode("/", $img_src));
         }else{
             return $filename;
         }
@@ -144,7 +144,7 @@ class Image{
     public function createThumbLocation($src, $size, $rename=null, $repath=null){	//创建本地缩略图{{{
 
         $file_info = pathinfo($src);				//分解文件信息
-        $extension = $file_info['extension'];		//获取文件扩展名
+        $extension = strtolower($file_info['extension']);		//获取文件扩展名
 
         $uniq_key = 'thumb_' . $file_info['filename'];		        //生成缓存key
         $img_name = $rename ? $rename : $uniq_key . "." . $extension;	//生成缩略图名r
