@@ -35,7 +35,7 @@ class Image{
         self::_createFolder($upload_path);
         $size = $_FILES[$imagename]['size'];
         $upload_name = $_FILES[$imagename]['name'];
-        $ext = pathinfo($upload_name, PATHINFO_EXTENSION);
+        $ext = strtolower(pathinfo($upload_name, PATHINFO_EXTENSION));
         if(empty($ext)) exit('File Extension Error.');
         $filename = $filename . "." . $ext;
         $config['upload_path'] = $upload_path;		//图片目录
