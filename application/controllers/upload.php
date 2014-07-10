@@ -31,8 +31,10 @@ class upload extends CI_Controller
             $img_src = $save_path . $file;
             if(!$this->input->post('thumb') === false){
                 $size = $this->input->post('size');
-                $size = $size ? $size : 120;
-                $img_thumb = $this->image->createThumbLocation($img_src, $size, null, $save_path);
+                $quality = $this->input->post('q');
+                $size = $size ? $size : 180;
+                $quality = $quality ? $quality : 60;
+                $img_thumb = $this->image->createThumbLocation($img_src, $size, null, $save_path, $quality);
             }
             echo $this->upload_src . $base_path . $file;
             exit;

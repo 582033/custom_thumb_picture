@@ -55,11 +55,11 @@ class Image{
         }
     }	//}}}
     private function compress($size, $upload_path, $filename){  //如果图片大于规定的比例,则压缩尺寸
-        $proportion = 1000000;  //比例
+        $proportion = 500000;  //比例
         $source_image = $upload_path . $filename;
         if($size > $proportion){
             list($real_width, $real_height) = getimagesize($source_image);
-            $width = floor(1000000/$size*$real_height);
+            $width = floor(500000/$size*$real_height);
             $img_src = self::createThumbLocation($source_image, $width, $filename, $upload_path);
             return end(explode("/", $img_src));
         }else{
@@ -141,7 +141,7 @@ class Image{
         }
         return $imgs;
     }	//}}}
-    public function createThumbLocation($src, $size, $rename=null, $repath=null){	//创建本地缩略图{{{
+    public function createThumbLocation($src, $size, $rename=null, $repath=null, $quality=80){	//创建本地缩略图{{{
 
         $file_info = pathinfo($src);				//分解文件信息
         $extension = strtolower($file_info['extension']);		//获取文件扩展名
@@ -154,7 +154,8 @@ class Image{
         $img_file = $save_path . $img_name;
 
         try{
-            $thumb = PhpThumbFactory::create($src);
+            $options = array('resizeUp' => true, 'jpegQuality' => $quality);
+            $thumb = PhpThumbFactory::create($src, $options);
         }
         catch (Exception $e){
             echo $e->getMessage();
