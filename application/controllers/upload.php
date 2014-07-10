@@ -33,7 +33,7 @@ class upload extends CI_Controller
                 $size = $this->input->post('size');
                 $quality = $this->input->post('q');
                 $size = $size ? $size : 180;
-                $quality = $quality ? $quality : 60;
+                $quality = $quality ? $quality : 80;
                 $img_thumb = $this->image->createThumbLocation($img_src, $size, null, $save_path, $quality);
             }
             echo $this->upload_src . $base_path . $file;
