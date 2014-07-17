@@ -66,37 +66,39 @@ class Image{
             return $filename;
         }
     }
-    public function crop_image($source_image, $x_axis, $y_axis, $width, $height, $view_width, $new_image = null){		//{{{
+    public function crop_image($source_image, $x_axis, $y_axis, $width, $height, $rename=null, $repath=null){		//{{{
         /**
          *  $source_image 要裁切图片的物理地址
          *  $x_axis $y_axis	裁切坐标
          *  $width $height 裁切的宽高
-         *  $view_width  页面上图片的宽度,用于取得在源图上裁切的比例
-         *  $new_image   裁切后的图片名称,默认覆盖原图
+         *  $rename 不传递则直接覆盖原图
          */
+        $file_info = pathinfo($source_image);                           //分解文件信息
+        $extension = strtolower($file_info['extension']);               //获取文件扩展名
         list($real_width, $real_height) = getimagesize($source_image);
         //print_r(getimagesize($source_image));
         $ratio = $real_width / $view_width;
-        if($new_image) {
-            $config['new_image'] = $new_image;
+        if($rename) {
+            $img_name = $rename;
         }
         else{
-            $new_image = array_pop(split('/', $source_image));
+            $img_name = array_pop(split('/', $source_image));
         }
-        $config['image_library'] = 'gd2';
-        $config['source_image'] = $source_image;
-        $config['maintain_ratio'] = FALSE;//保证设置的长宽有效
-        $config['x_axis'] = $x_axis * $ratio;
-        $config['y_axis'] = $y_axis * $ratio;
-        $config['width'] = $width * $ratio;
-        $config['height'] = $height * $ratio;
-        $this->obj->load->library('image_lib', $config);
-        if(!$this->obj->image_lib->crop()) {
-            return $this->obj->image_lib->display_errors();
-        }else{
-            return $new_image;//裁剪完毕
+
+        $save_path = $repath ? $repath : $path;
+        self::_createFolder($save_path);
+        $img_file = $save_path . $img_name;
+        try {
+            $thumb = PhpThumbFactory::create($source_image);
+            $thumb->crop($x_axis, $y_axis, $width, $height);
         }
-    }		//}}}
+        catch (Exception $e) {
+            echo $e->getMessage();
+            exit;
+        }
+        $thumb->save($img_file);
+        return $img_file;
+    }//}}}
     private function _listFiles($dir, $uri){	//列出文件夹下所有文件{{{
         if(!is_dir($dir)) return;
         if ($handle = opendir($dir)) {

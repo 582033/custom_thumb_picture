@@ -60,20 +60,20 @@ class upload extends CI_Controller
     }
 
     public function crop($a, $b, $c, $d){
-        //$img_path = "{$a}/{$b}/{$c}/";
-        //$img_name = $d;
+        $img_path = "{$a}/{$b}/{$c}/";
+        $img_name = $d;
+        if(!$a | !$b | !$c | !$d) exit('params error:img path');
+        $source_path = FCPATH . $img_path;
+        $source_name = end(explode("_", $img_name));
+        $source_img = $source_path . end(explode("_", $img_name));
+        $params = end(explode("-", reset(explode("_", $img_name))));
 
-        //if(!$a | !$b | !$c | !$d) exit('params error:img path');
+        if(!preg_match("/^\d+x\d+x\d+x\d+$/", $params)) exit('params error:img params');
 
-        //$source_path = FCPATH . $img_path;
-        //$source_name = end(explode("_", $img_name));
-        //$source_img = $source_path . end(explode("_", $img_name));
-        //$size = reset(explode("_", $img_name));
+        list($x, $y, $width, $hight) = explode("x", $params);
 
-        //if(!preg_match("/^\d+.*\d+$/", $size)) exit('params error:img size');
-
-        //$img_thumb = $this->image->createThumbLocation($source_img, $size, $img_name, $source_path);
-        //$img_src = "/" . $img_path . $source_name . "!" . $size;
+        $img_thumb = $this->image->crop_image($source_img, $x, $y, $width, $hight, $img_name, $source_path);
+        $img_src = "/" . $img_path . $source_name . "@" . $params;
         self::r301($img_src);
     }
 
@@ -97,40 +97,43 @@ class upload extends CI_Controller
  * 自动生成缩略图的nginx配置
  */
 
-//server{
-//    listen 80;
-//    listen 5001;
-//    server_name pic.weixin.com 192.19.0.10:5001;
-//    index index.html index.htm index.php;
-//    root /var/www/html/weixin/pic/;
-//    location ~ .*\.(jpg|png|gif)?(!\w+|\s|!\d+)$ {
-//        #valid_referers none blocked 192.168.34.77;
-//        #if($invalid_referer){
-//        #  return 403;
-//        #}
-//        rewrite ^/(tmp\/.*)/(\d+).(jpg|png|gif)!(\d+|\w+)$ /$1/$4_$2.$3;
-//        rewrite ^/(tmp\/.*)/(\d+).(jpg|png|gif)@(\d+x\d+x\d+x\d+)$ /$1/crop-$4_$2.$3;
-//        if ( !-f $request_filename ) {•
-//            rewrite ^/(tmp\/.*)/^(\d+.*).(jpg|png|gif)$ /upload/create/$1/$2.$3 redirect;
-//            rewrite ^/(tmp\/.*)/^(crop-\d+.*).(jpg|png|gif)$ /upload/crop/$1/$2.$3 redirect;
-//        }•••
-//    expires 30d;••••
-//    }•••
-//    location / {•
-//        if (!-e $request_filename) {
-//            rewrite ^/(.*)$ /index.php?$1 last;
-//            break;
-//        }•••
-//        rewrite ^/(?!index\.php|robots\.txt|tmp)(.*)$ /index.php/$1 last;
-//    }•••
-//    location ~ .*\.(php|php5)?$ {
-//        fastcgi_pass 127.0.0.1:9000;
-//        fastcgi_index index.php;
-//        fastcgi_split_path_info ^(.+\.php)(.*)$;
-//        fastcgi_param        SCRIPT_FILENAME        $document_root$fastcgi_script_name;
-//        fastcgi_param        PATH_INFO                $fastcgi_path_info;
-//        fastcgi_param        PATH_TRANSLATED        $document_root$fastcgi_path_info;
-//        include        fastcgi_params;
-//    }
-//}
+/*
+server{
+    listen 80;
+    listen 5001;
+    server_name pic.weixin.com 192.19.0.10:5001;
+    index index.html index.htm index.php;
+    root /var/www/html/weixin/pic/;
+    location ~ .*\.(jpg|png|gif)?(\s|!\w+|!\d+)$ {
+        rewrite ^/(tmp\/.*)/(\d+).(jpg|png|gif)!(\d+|\w+)$ /$1/$4_$2.$3;
+        if ( !-f $request_filename ) {•
+            rewrite ^/(tmp\/.*)/(\d+.*).(jpg|png|gif)$ /upload/create/$1/$2.$3 redirect;
+        }
+        expires 30d;
+    }
+    location ~ .*\.(jpg|png|gif)?(@\d+x\d+x\d+x\d+)$ {
+        rewrite ^/(tmp\/.*)/(\d+).(jpg|png|gif)@(\d+x\d+x\d+x\d+)$ /$1/crop-$4_$2.$3;
+        if ( !-f $request_filename ) {•
+            rewrite ^/(tmp\/.*)/crop-(\d+.*).(jpg|png|gif)$ /upload/crop/$1/crop-$2.$3 redirect;
+        }
+        expires 30d;
+    }
+    location / {•
+        if (!-e $request_filename) {
+            rewrite ^/(.*)$ /index.php?$1 last;
+            break;
+        }•••
+        rewrite ^/(?!index\.php|robots\.txt|tmp)(.*)$ /index.php/$1 last;
+    }•••
+    location ~ .*\.(php|php5)?$ {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        fastcgi_split_path_info ^(.+\.php)(.*)$;
+        fastcgi_param        SCRIPT_FILENAME        $document_root$fastcgi_script_name;
+        fastcgi_param        PATH_INFO                $fastcgi_path_info;
+        fastcgi_param        PATH_TRANSLATED        $document_root$fastcgi_path_info;
+        include        fastcgi_params;
+    }
+}
+*/
 ?>
