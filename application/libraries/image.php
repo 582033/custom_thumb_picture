@@ -144,6 +144,7 @@ class Image{
     public function createThumbLocation($src, $size, $rename=null, $repath=null, $quality=80){	//创建本地缩略图{{{
 
         $file_info = pathinfo($src);				//分解文件信息
+        list($s_w, $s_h) = getimagesize($src);
         $extension = strtolower($file_info['extension']);		//获取文件扩展名
 
         $uniq_key = 'thumb_' . $file_info['filename'];		        //生成缓存key
@@ -165,17 +166,23 @@ class Image{
             if(strpos($size, 'x')){
                 list($width, $height) = explode('x', $size);
                 $thumb->resize($width, $height);
-        }
+            }
             else{
-                $thumb->resize($size);
+                if($s_w >= $s_h){
+                    $thumb->resize($size);
+                }
+                else{//当高大于宽时,以高度为$size进行缩略
+                    $w = intval($s_w * $size / $s_h);
+                    $thumb->resize($w, $size);
+                }
             }
-            }
-            else {
+        }
+        else {
                 $thumb->resizePercent(100);
-            }
-            $thumb->save($img_file);
-            return $img_file;
-            }	//}}}
+        }
+        $thumb->save($img_file);
+        return $img_file;
+    }   //}}}
             /**
              * 计算生成图片存放目录
              */
