@@ -52,15 +52,23 @@ class upload extends CI_Controller
         $source_path = FCPATH . $img_path;
         $source_img = $source_path . end(explode("_", $img_name));
 
-        if(preg_match('/^\d+_crop-\d+x\d+x\d+x\d+_\d+.*$/', $d)){//支持裁切图缩略
-            $crop_size = preg_replace('/^\d+_crop-(\d+x\d+x\d+x\d+)_\d+.*$/', '\1', $d);
+        if(preg_match('/^(\d+|\w+)_crop-\d+x\d+x\d+x\d+_\d+.*$/', $d)){//支持裁切图缩略
+            $crop_size = preg_replace('/^(\d+|\w+)_crop-(\d+x\d+x\d+x\d+)_\d+.*$/', '\2', $d);
             $source_img = $source_path . "crop-" . $crop_size . "_" . $source_name;
             $source_name = $source_name . "@" . $crop_size;
         }
 
-        if(!preg_match("/^\d+.*\d+$/", $size)) exit('params error:img size');
+        if(!preg_match("/^(\d+.*\d+|\w+)$/", $size)) exit('params error:img size');
 
-        $img_thumb = $this->image->createThumbLocation($source_img, $size, $img_name, $source_path);
+        switch($size){
+            case 'thumb':
+                $r_size = 180;
+                break;
+            default:
+                $r_size = $size;
+        }
+
+        $img_thumb = $this->image->createThumbLocation($source_img, $r_size, $img_name, $source_path);
         $img_src = "/" . $img_path . $source_name . "!" . $size;
         self::r301($img_src);
     }
