@@ -64,8 +64,19 @@ class upload extends CI_Controller
         $img_name = $d;
         if(!$a | !$b | !$c | !$d) exit('params error:img path');
         $source_path = FCPATH . $img_path;
-        $source_name = end(explode("_", $img_name));
-        $source_img = $source_path . end(explode("_", $img_name));
+
+        //支持缩略图裁剪
+        $resolve = explode("_", $img_name);
+        if(count($resolve) <= 2){
+            $source_name = end(explode("_", $img_name));
+        }
+        else{
+            $tmp_source = array_pop($resolve);
+            $tmp_size = array_pop($resolve);
+            $source_name = $tmp_size . "_" . $tmp_source;
+        }
+
+        $source_img = $source_path . $source_name;
         $params = end(explode("-", reset(explode("_", $img_name))));
 
         if(!preg_match("/^\d+x\d+x\d+x\d+$/", $params)) exit('params error:img params');
@@ -109,22 +120,26 @@ server{
         if ( !-f $request_filename ) {•
             rewrite ^/(tmp\/.*)/(\d+.*).(jpg|png|gif)$ /upload/create/$1/$2.$3 redirect;
         }
-        expires 30d;
+        if ( -f $request_filename ) {•
+            expires 30d;
+        }
     }
     location ~ .*\.(jpg|png|gif)?(@\d+x\d+x\d+x\d+)$ {
-        rewrite ^/(tmp\/.*)/(\d+).(jpg|png|gif)@(\d+x\d+x\d+x\d+)$ /$1/crop-$4_$2.$3;
+        rewrite ^/(tmp\/.*)/(\d+|.*_\d+).(jpg|png|gif)@(\d+x\d+x\d+x\d+)$ /$1/crop-$4_$2.$3;
         if ( !-f $request_filename ) {•
-            rewrite ^/(tmp\/.*)/crop-(\d+.*).(jpg|png|gif)$ /upload/crop/$1/crop-$2.$3 redirect;
+            rewrite ^/(tmp\/.*)/crop-(\d+.*|.*\d+).(jpg|png|gif)$ /upload/crop/$1/crop-$2.$3 redirect;
         }
-        expires 30d;
+        if ( -f $request_filename ) {•
+            expires 30d;
+        }
     }
-    location / {•
+    location / {
         if (!-e $request_filename) {
             rewrite ^/(.*)$ /index.php?$1 last;
             break;
-        }•••
+        }
         rewrite ^/(?!index\.php|robots\.txt|tmp)(.*)$ /index.php/$1 last;
-    }•••
+    }
     location ~ .*\.(php|php5)?$ {
         fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
