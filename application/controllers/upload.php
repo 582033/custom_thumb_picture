@@ -47,10 +47,16 @@ class upload extends CI_Controller
 
         if(!$a | !$b | !$c | !$d) exit('params error:img path');
 
-        $source_path = FCPATH . $img_path;
         $source_name = end(explode("_", $img_name));
-        $source_img = $source_path . end(explode("_", $img_name));
         $size = reset(explode("_", $img_name));
+        $source_path = FCPATH . $img_path;
+        $source_img = $source_path . end(explode("_", $img_name));
+
+        if(preg_match('/^\d+_crop-\d+x\d+x\d+x\d+_\d+.*$/', $d)){//支持裁切图缩略
+            $crop_size = preg_replace('/^\d+_crop-(\d+x\d+x\d+x\d+)_\d+.*$/', '\1', $d);
+            $source_img = $source_path . "crop-" . $crop_size . "_" . $source_name;
+            $source_name = $source_name . "@" . $crop_size;
+        }
 
         if(!preg_match("/^\d+.*\d+$/", $size)) exit('params error:img size');
 
@@ -115,16 +121,25 @@ server{
     server_name pic.weixin.com 192.19.0.10:5001;
     index index.html index.htm index.php;
     root /var/www/html/weixin/pic/;
-    location ~ .*\.(jpg|png|gif)?(\s|!\w+|!\d+)$ {
-        rewrite ^/(tmp\/.*)/(\d+).(jpg|png|gif)!(\d+|\w+)$ /$1/$4_$2.$3;
-        if ( !-f $request_filename ) {•
-            rewrite ^/(tmp\/.*)/(\d+.*).(jpg|png|gif)$ /upload/create/$1/$2.$3 redirect;
+    location ~ .*\.(jpg|png|gif)@(\d+x\d+x\d+x\d+)!(\w+|\d+)$ {
+        rewrite ^/(tmp\/.*)/(\d+).(jpg|png|gif)@(\d+x\d+x\d+x\d+)!(\w+|\d+)$ /$1/$5_crop-$4_$2.$3;
+        if ( !-f $request_filename ) {
+            rewrite ^/(tmp\/.*)/(\d+_crop-\d+x\d+x\d+x\d+_\d+).(jpg|png|gif)$ /upload/create/$1/$2.$3 redirect;
         }
         if ( -f $request_filename ) {•
             expires 30d;
         }
     }
-    location ~ .*\.(jpg|png|gif)?(@\d+x\d+x\d+x\d+)$ {
+    location ~ .*\.(jpg|png|gif)!(\w+|\d+)$ {
+        rewrite ^/(tmp\/.*)/(\d+.*\d+).(jpg|png|gif)!(\d+|\w+)$ /$1/$4_$2.$3;
+        if ( !-f $request_filename ) {•
+            rewrite ^/(tmp\/.*)/(\d+.*\d+).(jpg|png|gif)$ /upload/create/$1/$2.$3 redirect;
+        }
+        if ( -f $request_filename ) {•
+            expires 30d;
+        }
+    }
+    location ~ .*\.(jpg|png|gif)@(\d+x\d+x\d+x\d+)$ {
         rewrite ^/(tmp\/.*)/(\d+|.*_\d+).(jpg|png|gif)@(\d+x\d+x\d+x\d+)$ /$1/crop-$4_$2.$3;
         if ( !-f $request_filename ) {•
             rewrite ^/(tmp\/.*)/crop-(\d+.*|.*\d+).(jpg|png|gif)$ /upload/crop/$1/crop-$2.$3 redirect;
@@ -133,6 +148,7 @@ server{
             expires 30d;
         }
     }
+
     location / {
         if (!-e $request_filename) {
             rewrite ^/(.*)$ /index.php?$1 last;
